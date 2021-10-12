@@ -4,6 +4,7 @@ let width = window.innerWidth
 let height = window.innerHeight
 canvas.width = width
 canvas.height = height
+let methodList = [3, 4]
 function makeEggPath(xPos, yPos, a, b, d) {
   let pathL = []
   let pathR = []
@@ -25,16 +26,57 @@ function drawPath(path) {
   ctx.strokeStyle = "black"
   ctx.stroke()
 }
-function subDivideEgg(path, maxSteps) {
+function subDivideEgg(path, methods) {
   let length = path.length
-  let pts = [path[0], path[Math.floor(length / 3)], path[Math.floor(length / 3) * 2]]
-  drawTriangle(pts)
-  subDivideTriangle(pts, 4, maxSteps)
+  let triangle = [path[0], path[Math.floor(length / 3)], path[Math.floor(length / 3) * 2]]
+  let l_half = Math.round(length / 2)
+  let triangle_flipped = [path[0 + l_half], path[Math.floor(length / 3) + Math.round(l_half*1.1111)], path[(Math.floor(length / 3) * 2 + Math.round(l_half*0.9)) % length]]
+  if (true/*Math.random() < 0.5*/) {
+    //not flipped
+    let oTriangles = []
+    oTriangles.push([
+      triangle[2],
+      triangle_flipped[0],
+      triangle[1]
+    ])
+    oTriangles.push([
+      triangle[0],
+      triangle_flipped[1],
+      triangle[2]
+    ])
+    oTriangles.push([
+      triangle[1],
+      triangle_flipped[2],
+      triangle[0]
+    ])
+    drawTriangle(triangle)
+    subDivideTriangle(triangle, methods)
+    for(let t of oTriangles){
+      subDivideTriangle(t,methods)
+    }
+  } else {
+    //flipped
+    drawTriangle(pts)
+    subDivideTriangle(pts, methods)
+  }
 }
 function ptBetween(a, b) {
-  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
+  if (Array.isArray(a)) {
+    let x = 0
+    let y = 0
+    for (let pt of a) {
+      x += pt.x
+      y += pt.y
+    }
+    x /= a.length
+    y /= a.length
+    return { x, y }
+  } else {
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
+  }
 }
-function subDivideTriangle(pts, method, maxSteps, step = 0) {
+function subDivideTriangle(pts, methods, step = 0) {
+  let method = methods[step]
   let nTriangles = []
   switch (method) {
     case 4: {
@@ -43,7 +85,6 @@ function subDivideTriangle(pts, method, maxSteps, step = 0) {
         ptBetween(pts[1], pts[2]),
         ptBetween(pts[0], pts[2]),
       ]
-      drawTriangle(centerPts)
       nTriangles.push(centerPts)
       nTriangles.push([
         centerPts[2],
@@ -62,10 +103,32 @@ function subDivideTriangle(pts, method, maxSteps, step = 0) {
       ])
       break;
     }
+    case 3: {
+      let centerPt = ptBetween(pts)
+      console.log(centerPt)
+      nTriangles.push([
+        pts[0],
+        pts[2],
+        centerPt
+      ])
+      nTriangles.push([
+        pts[0],
+        pts[1],
+        centerPt
+      ])
+      nTriangles.push([
+        pts[1],
+        pts[2],
+        centerPt
+      ])
+
+      break;
+    }
   }
-  if (step < maxSteps) {
+  if (step < methods.length) {
     for (let triangle of nTriangles) {
-      subDivideTriangle(triangle, 4, maxSteps, step + 1)
+      drawTriangle(triangle)
+      subDivideTriangle(triangle, methods, step + 1)
     }
   }
 }
@@ -84,4 +147,5 @@ function drawTriangle(pts) {
 let b = 50 + (Math.random() - 0.5) * 5
 let path = makeEggPath(100, 100, 70, b, 22)
 drawPath(path)
-subDivideEgg(path,3)
+let methods = [4, 3, 3]
+subDivideEgg(path, methods)
