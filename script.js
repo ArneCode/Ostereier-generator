@@ -28,5 +28,18 @@ function drawPath(path){
   ctx.rect(100,100,3,3)
   ctx.fill()
 }
+function subDivideEgg(path){
+  let length=path.length
+  let pts=[path[0],path[Math.floor(length/3)],path[Math.floor(length/3)*2]]
+  ctx.beginPath()
+  moveTo(pts[0].x,pts[0].y)
+  for(let i=1;i<pts.length;i++){
+    let pt=pts[i]
+    ctx.lineTo(pts[0].x,pts[0].y)
+  }
+  ctx.fillStyle="red"
+  ctx.fill()
+}
 let b=50+(Math.random()-0.5)*5
-drawPath(makeEggPath(100, 100, 70,b,22))
+let path=makeEggPath(100, 100, 70,b,22)
+subDivideEgg(path)
